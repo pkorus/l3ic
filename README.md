@@ -34,14 +34,17 @@ More details available [here](...)
 
 ## Speed Benchmarks
 
-TLDR:
-- With mid-range server hardware (CPU/GPU) compressing a 1920 x 1080 RGB image takes 0.19 s, 
-- the corresponding decompression takes 0.17 s.
+**TLDR:**
+- With mid-range server hardware (CPU & GPU) compressing a 1920 x 1080 RGB image takes 0.19 s & the corresponding decompression takes 0.17 s.
+- This is much faster than BPG, considerably faster than JPEG 2000 and much slower than JPEG.
+- Further runtime optimizations are possible by parallelizing entropy coding (per-channels).
 
-The code has not been particularly optimized, but still delivers competitive processing speed. It is significantly faster than some of the other models you can find online (e.g., [Mentzer et al. CVPR'18](https://github.com/fab-jul/imgcomp-cvpr) which is reported to require ~6 min for fairly small 768 x 512 Kodak images). With modern GPUs, the entropy codec starts to become the bottleneck - and we used one of the fastest things out there (the [FSE codec](https://github.com/Cyan4973/FiniteStateEntropy) from Yann Collet based on [asymmetric numeral systems](https://arxiv.org/abs/1311.2540) from Jarek Duda).
+The code has not been particularly optimized, but still delivers competitive processing speed. It is significantly faster than some of the other models you can find online (e.g., [Mentzer et al. CVPR'18](https://github.com/fab-jul/imgcomp-cvpr) which is reported to require ~6 min for fairly small 768 x 512 Kodak images). With modern GPUs, the entropy codec starts to become the bottleneck - and we used one of the fastest things out there (the [FSE codec](https://github.com/Cyan4973/FiniteStateEntropy) from Yann Collet based on [asymmetric numeral systems](https://arxiv.org/abs/1311.2540) from Jarek Duda). Since latent channels are currently encoded separately, the problem could be trivially parallelized to further speed up processing.
+
+**Standard codecs**
 
 As a general reference, encoding a 1920 x 1080 px image using standard codecs takes approx. (n i7-7700 CPU @ 3.60GHz):
-- JPEG with 1 thread takes between 0.061s (Q=30) and 0.075 s (Q=90) [inclusive of writing time to RAM disk; *pillow* library]
+- JPEG with 1 thread takes between 0.061 s (Q=30) and 0.075 s (Q=90) [inclusive of writing time to RAM disk; *pillow* library]
 - JPEG 2000 with 1 thread takes ~0.61 s regardless of the quality level [inclusive of writing time to RAM disk; *glymur* library]
 - BPG with 4 parallel threads takes 2.4 s (Q=1), 1.25 s (Q=20) and 0.72 s (Q=30) [inclusive of PNG reading time from RAM disk; *bpgenc* command line tool].
 
