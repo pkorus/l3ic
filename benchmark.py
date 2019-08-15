@@ -24,7 +24,7 @@ parser.add_argument('-m', '--model', dest='model', action='store', default='8k',
 args = parser.parse_args()
 
 # List available images
-files = [x for x in os.listdir(args.dir) if os.path.splitext(x)[-1].lower() in bitmap_formats][:3]
+files = [x for x in os.listdir(args.dir) if os.path.splitext(x)[-1].lower() in bitmap_formats]
 print('Found {} test images in {}'.format(len(files), args.dir))
 
 # Create an instance of the NN model
