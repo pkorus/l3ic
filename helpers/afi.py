@@ -9,7 +9,7 @@ from scipy.cluster.vq import vq
 from skimage.measure import compare_ssim, compare_psnr
 
 from pyfse import pyfse
-from format import utils
+from helpers import utils
 
 
 class AFIError(Exception):
