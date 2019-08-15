@@ -19,17 +19,13 @@ class DCN():
             self.codebook = self.graph.get_tensor_by_name('import/twitterdcn/optimization/entropy/Const:0')
         
     def compress(self, batch_x):
-        # with self.graph.as_default():     
         return self.sess.run(self.z, feed_dict={self.x: batch_x})
             
     def decompress(self, batch_z):
-        # with self.graph.as_default():
         return self.sess.run(self.y, { self.z: batch_z }).clip(0, 1)
 
     def process(self, batch_x):
-        # with self.graph.as_default():     
         return self.sess.run(self.y, feed_dict={self.x: batch_x})
 
     def get_codebook(self):
-        # with self.graph.as_default():     
         return self.sess.run(self.codebook).reshape((-1,))
