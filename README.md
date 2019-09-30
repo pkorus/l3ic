@@ -1,18 +1,20 @@
 ## Introduction
 
-...
+Lightweight & high-performance learned image codec (Tensorflow). 
+
+This repository contains a deployed model only. For model definition, training scripts, etc. see my [neural imaging toolbox](https://github.com/pkorus/neural-imaging). Details description can be found in:
+
+- P. Korus, N. Memon, *Quantifying the Cost of Reliable Photo Authentication via High-Performance Learned Lossy Representations*, 2019, [openreview](https://openreview.net/forum?id=HyxG3p4twS)
 
 ## Architecture at a Glance
 
-- We used the auto-encoder architecture from [Liu et al. CVPR Workshops'18](https://arxiv.org/abs/1806.01496)
+- We used the auto-encoder architecture from [Liu et al. @CVPRW'18](https://arxiv.org/abs/1806.01496)
 - We implemented our own quantizer and entropy estimator
 - We don't use any normalizations (e.g., GDNs) & regularize only based on the entropy of the quantized latent representation
 - The deployed model uses a code-book with 32 values (integers from -15 to 16)
 - We used a state-of-the-art entropy codec ([FSE](https://github.com/Cyan4973/FiniteStateEntropy))
 - The latent representation is entropy-coded channel-wise - this brings savings as the images get larger and allows for random access to individual channels (may be useful e.g., when [doing vision directly on the latent representation](https://arxiv.org/abs/1803.06131))
 - We control image quality using the number of latent channels (3 models with 16, 32 and 64 channels are provided)
-
-More details available [here](...)
 
 ## Installation
 
@@ -25,16 +27,27 @@ More details available [here](...)
 > cd pyfse
 > make
 > cd ..
-> python3 demo.py -m 8k
+> python3 demo.py -m 32c
 ```
 
 ## Quality Benchmarks
 
+Our codec delivers rate-distortion performance close to BPG. We show the quality-payload trade-off for 3 different datasets:
 
+- Validation images from the [CLIC/professional](https://www.compression.cc/) dataset (down-sampled to 512 px).
+- Standard [Kodak images](http://r0k.us/graphics/kodak/) (Cropped to 512 px).
+- Random patches with native camera output (512 px; 4 cameras from [RAISE](http://loki.disi.unitn.it/RAISE/) and [MIT-5k](https://data.csail.mit.edu/graphics/fivek/)).
+
+![Low-quality compression example](docs/dcn_tradeoffs.png)
+
+Example compression results (central 128 px crop) for our low-quality codec are shown below. For comparison, we also show standard JPEGs with matching quality and payload.
+
+![Low-quality compression example](docs/jpeg_match_16c.webp)
 
 ## Speed Benchmarks
 
 **TLDR:**
+
 - With mid-range server hardware (CPU & GPU) compressing a 1920 x 1080 RGB image takes 0.19 s & the corresponding decompression takes 0.17 s.
 - This is much faster than BPG, considerably faster than JPEG 2000 and much slower than JPEG.
 - Further runtime optimizations are possible by parallelizing entropy coding (per-channels).
