@@ -16,8 +16,8 @@ bitmap_formats = {'.png', '.jpg', '.bmp', '.jpeg', '.jp2'}
 parser = argparse.ArgumentParser(description='AFI codec')
 parser.add_argument('-i', '--input', dest='input', 
                     help='Input file (bitmap or AFI stream)')
-parser.add_argument('-m', '--model', dest='model', action='store', default='8k',
-                    help='DCN model - corresponds to quality: 4k, 8k, 16k')
+parser.add_argument('-m', '--model', dest='model', action='store', default='32c',
+                    help='DCN model - corresponds to quality: 16c, 32c, 64c')
 parser.add_argument('-o', '--output', dest='output', action='store', 
                     help='Output file (bitmap or AFI stream)')
 

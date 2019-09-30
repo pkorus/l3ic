@@ -23,8 +23,8 @@ def quickshow(ax, image, title):
 
 parser = argparse.ArgumentParser(description='Show results from NIP & FAN optimization')
 parser.add_argument('-i', '--image', default='./samples/md575e5a225f.png')
-parser.add_argument('-m', '--model', dest='model', action='store', default='8k',
-                    help='DCN model - corresponds to quality (4k, 8k, 16k)')
+parser.add_argument('-m', '--model', dest='model', action='store', default='32c',
+                    help='DCN model - corresponds to quality (16c, 32c, 64c)')
 parser.add_argument('-s', '--stats', dest='stats', action='store_true', default=False,
                     help='Show detailed stats')
 

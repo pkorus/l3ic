@@ -4,7 +4,7 @@ import tensorflow as tf
 
 class DCN():
 
-    def __init__(self, model='8k'):
+    def __init__(self, model='32c'):
         self.x = tf.placeholder(tf.float32)
         self.model = model
         self.graph = tf.get_default_graph()

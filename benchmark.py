@@ -18,8 +18,8 @@ bitmap_formats = {'.png', '.jpg', '.bmp', '.jpeg', '.jp2'}
 parser = argparse.ArgumentParser(description='Show results from NIP & FAN optimization')
 parser.add_argument('-v', '--verbose', action='store_true', help='run additional tests (AE benchmark)')
 parser.add_argument('-d', '--dir', default='./samples/clic512', help='input directory (bitmaps only)')
-parser.add_argument('-m', '--model', dest='model', action='store', default='8k',
-                    help='DCN model - corresponds to quality: 4k, 8k, 16k')
+parser.add_argument('-m', '--model', dest='model', action='store', default='32c',
+                    help='DCN model - corresponds to quality: 16c, 32c, 64c')
 
 args = parser.parse_args()
 
