@@ -10,7 +10,7 @@ from skimage.measure import compare_ssim
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from models.dcn import DCN
-from helpers import afi
+from helpers import codec
 
 
 bitmap_formats = {'.png', '.jpg', '.bmp', '.jpeg', '.jp2'}
@@ -49,9 +49,9 @@ for filename in files:
 
     # Process
     t1 = datetime.now()
-    compressed_stream = afi.compress(dcn, np.expand_dims(image, axis=0))
+    compressed_stream = codec.compress(dcn, np.expand_dims(image, axis=0))
     t2 = datetime.now()
-    decompressed_imag = afi.decompress(dcn, compressed_stream).squeeze()
+    decompressed_imag = codec.decompress(dcn, compressed_stream).squeeze()
     t3 = datetime.now()
     ssim = compare_ssim(image, decompressed_imag, multichannel=True, data_range=1.0)
 

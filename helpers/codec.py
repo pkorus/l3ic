@@ -12,16 +12,15 @@ from pyfse import pyfse
 from helpers import utils
 
 
-class AFIError(Exception):
+class L3ICError(Exception):
     pass
 
 
 def simulate_compression(dcn, batch_x):
     """
-    Simulate AFI compression and return decompressed image and byte count.
+    Simulates the entire compression and decompression (writes bytes to memory). Returns decompressed image and the byte count.
     """
 
-    # Compress each image
     compressed_image = compress(dcn, batch_x)
     batch_y = decompress(dcn, compressed_image)
 
@@ -59,7 +58,7 @@ def compress(model, batch_x, verbose=False):
     """
     Serialize the image as a bytes sequence. The feature maps are encoded as separate layers.
 
-    ## Analysis Friendly Image (AFI) File structure:
+    ## Bit-stream structure:
 
     - Latent shape H x W x N = 3 x 1 byte (uint8)
     - Length of coded layer sizes = 2 bytes (uint16)
@@ -91,10 +90,10 @@ def compress(model, batch_x, verbose=False):
     coded_layers = []
     code_book = model.get_codebook()
     if verbose:
-        print('[AFI Encoder]', 'Code book:', code_book)
+        print('[l3ic encoder]', 'Code book:', code_book)
 
     if len(code_book) > 256:
-        raise AFIError('Code-books with more than 256 centers are not supported')
+        raise L3ICError('Code-books with more than 256 centers are not supported')
 
     for n in range(latent_shape[-1]):
         # TODO Should a code book always be used? What about integers?
@@ -113,35 +112,35 @@ def compress(model, batch_x, verbose=False):
             if len(coded_layer) == 1:
                 if verbose:
                     layer_stats = Counter(batch_z[:, :, :, n].reshape((-1))).items()
-                    print('[AFI Encoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
-                    print('[AFI Encoder]', 'Layer {} code-book indices:'.format(n), indices.reshape((-1))[:20])
-                    print('[AFI Encoder]', 'Layer {} hist:'.format(n), layer_stats)
+                    print('[l3ic encoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
+                    print('[l3ic encoder]', 'Layer {} code-book indices:'.format(n), indices.reshape((-1))[:20])
+                    print('[l3ic encoder]', 'Layer {} hist:'.format(n), layer_stats)
 
-                raise AFIError('Layer {} data compresses to a single byte? Something is wrong!'.format(n))
+                raise L3ICError('Layer {} data compresses to a single byte? Something is wrong!'.format(n))
             coded_layers.append(coded_layer)
 
     # Show example layer
     if verbose:
         n = 0
         layer_stats = Counter(batch_z[:, :, :, n].reshape((-1))).items()
-        print('[AFI Encoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
-        print('[AFI Encoder]', 'Layer {} code-book indices:'.format(n), indices.reshape((-1))[:20])
-        print('[AFI Encoder]', 'Layer {} hist:'.format(n), layer_stats)
+        print('[l3ic encoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
+        print('[l3ic encoder]', 'Layer {} code-book indices:'.format(n), indices.reshape((-1))[:20])
+        print('[l3ic encoder]', 'Layer {} hist:'.format(n), layer_stats)
 
     # Write the layer size array
     layer_lengths = np.array([len(x) for x in coded_layers], dtype=np.uint16)
 
     try:
         coded_lengths = pyfse.easy_compress(layer_lengths.tobytes())
-        if verbose: print('[AFI Encoder]', 'FSE coded lengths')
+        if verbose: print('[l3ic encoder]', 'FSE coded lengths')
     except pyfse.FSENotCompressibleError:
         # If the FSE coded stream is empty - it is not compressible - save natively
-        if verbose: print('[AFI Encoder]', 'RAW coded lengths')
+        if verbose: print('[l3ic encoder]', 'RAW coded lengths')
         coded_lengths = layer_lengths.tobytes()
 
     if verbose:
-        print('[AFI Encoder]', 'Coded lengths #', len(coded_lengths), '=', coded_lengths)
-        print('[AFI Encoder]', 'Layer lengths = ', layer_lengths)
+        print('[l3ic encoder]', 'Coded lengths #', len(coded_lengths), '=', coded_lengths)
+        print('[l3ic encoder]', 'Layer lengths = ', layer_lengths)
 
     if len(coded_lengths) == 0:
         raise RuntimeError('Empty coded layer lengths!')
@@ -158,7 +157,7 @@ def compress(model, batch_x, verbose=False):
 
 def decompress(model, stream, verbose=False):
     """
-    Deserialize an image from the given bytes sequence. See docs of compress for stream details.
+    Decompress an image from the given bytes sequence. See docs of compress for stream details.
     """
 
     if type(stream) is bytes:
@@ -177,22 +176,22 @@ def decompress(model, stream, verbose=False):
     coded_layer_lengths = stream.read(int(layer_bytes))
 
     if verbose:
-        print('[AFI Decoder]', 'Latent space', latent_x, latent_y, n_latent)
-        print('[AFI Decoder]', 'Layer bytes', layer_bytes)
+        print('[l3ic decoder]', 'Latent space', latent_x, latent_y, n_latent)
+        print('[l3ic decoder]', 'Layer bytes', layer_bytes)
 
     if layer_bytes != 2 * n_latent:
         if verbose:
-            print('[AFI Decoder]', 'Decoding FSE L')
-            print('[AFI Decoder]', 'Decoding from', coded_layer_lengths)
+            print('[l3ic decoder]', 'Decoding FSE L')
+            print('[l3ic decoder]', 'Decoding from', coded_layer_lengths)
         layer_lengths_bytes = pyfse.easy_decompress(coded_layer_lengths)
         layer_lengths = np.frombuffer(layer_lengths_bytes, dtype=np.uint16)
     else:
         if verbose:
-            print('[AFI Decoder]', 'Decoding RAW L')
+            print('[l3ic decoder]', 'Decoding RAW L')
         layer_lengths = np.frombuffer(coded_layer_lengths, dtype=np.uint16)
 
     if verbose:
-        print('[AFI Decoder]', 'Layer lengths', layer_lengths)
+        print('[l3ic decoder]', 'Layer lengths', layer_lengths)
 
     # Create the latent space array
     batch_z = np.zeros((1, latent_x, latent_y, n_latent))
@@ -211,8 +210,8 @@ def decompress(model, stream, verbose=False):
             else:
                 layer_data = pyfse.easy_decompress(coded_layer, 4 * latent_x * latent_y)
         except pyfse.FSEException as e:
-            print('[AFI Decoder]', 'ERROR while decoding layer', n)
-            print('[AFI Decoder]', 'Stream of size', len(coded_layer), 'bytes =', coded_layer)
+            print('[l3ic decoder]', 'ERROR while decoding layer', n)
+            print('[l3ic decoder]', 'Stream of size', len(coded_layer), 'bytes =', coded_layer)
             raise e
         batch_z[0, :, :, n] = code_book[np.frombuffer(layer_data, np.uint8)].reshape((latent_x, latent_y))
 
@@ -220,9 +219,8 @@ def decompress(model, stream, verbose=False):
     if verbose:
         n = 0
         layer_stats = Counter(batch_z[:, :, :, n].reshape((-1))).items()
-        print('[AFI Decoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
-        # print('[AFI Encoder]', 'Layer {} code-book indices:'.format(n), indices.reshape((-1))[:20])
-        print('[AFI Decoder]', 'Layer {} hist:'.format(n), layer_stats)
+        print('[l3ic decoder]', 'Layer {} values:'.format(n), batch_z[:, :, :, n].reshape((-1)))
+        print('[l3ic decoder]', 'Layer {} hist:'.format(n), layer_stats)
 
     # Use the DCN decoder to decompress the RGB image
     return model.decompress(batch_z)
