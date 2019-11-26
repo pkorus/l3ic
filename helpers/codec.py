@@ -40,7 +40,7 @@ def compress_n_stats(batch_x, dcn):
     }
 
     for image_id in range(batch_x.shape[0]):
-        batch_y[image_id], image_bytes = simulate_compression(dcn, batch_x[image_id:image_id + 1])
+        batch_y[image_id], image_bytes = simulate_compression(batch_x[image_id:image_id + 1], dcn)
         batch_z = dcn.compress(batch_x[image_id:image_id + 1])
         stats['bytes'][image_id] = image_bytes
         stats['entropy'][image_id] = utils.entropy(batch_z, dcn.get_codebook())
@@ -193,7 +193,7 @@ def decompress(stream, model=None, verbose=False):
     if verbose:
         print('[l3ic decoder]', 'Layer lengths', layer_lengths)
 
-    # Get the 
+    # Get the correct DCN model
     if model is None:
         model = DCN('{}c'.format(n_latent))
 
