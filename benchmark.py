@@ -49,9 +49,9 @@ for filename in files:
 
     # Process
     t1 = datetime.now()
-    compressed_stream = codec.compress(dcn, np.expand_dims(image, axis=0))
+    compressed_stream = codec.compress(np.expand_dims(image, axis=0), dcn)
     t2 = datetime.now()
-    decompressed_imag = codec.decompress(dcn, compressed_stream).squeeze()
+    decompressed_imag = codec.decompress(compressed_stream, dcn).squeeze()
     t3 = datetime.now()
     ssim = compare_ssim(image, decompressed_imag, multichannel=True, data_range=1.0)
 
@@ -77,7 +77,7 @@ for filename in files:
 
 print('\n# DCN model ({}):'.format(args.model))
 for id, filename in enumerate(files):
-    print('{:>30s} {} -> ssim {:.3f} @ {:.2f} bpp'.format(filename, stats['shape'][id], stats['ssim'][id], stats['bpp'][id]))
+    print('{:>40s} {} -> ssim {:.3f} @ {:.2f} bpp'.format(filename, stats['shape'][id], stats['ssim'][id], stats['bpp'][id]))
 
 print('\n# Average processing time:')
 print('  full compression   : {:.4f} s'.format(np.mean(stats['compress'])))

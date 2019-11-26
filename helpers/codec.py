@@ -8,6 +8,7 @@ from pathlib import Path
 from scipy.cluster.vq import vq
 from skimage.measure import compare_ssim, compare_psnr
 
+from models.dcn import DCN
 from pyfse import pyfse
 from helpers import utils
 
@@ -16,18 +17,18 @@ class L3ICError(Exception):
     pass
 
 
-def simulate_compression(dcn, batch_x):
+def simulate_compression(batch_x, dcn):
     """
     Simulates the entire compression and decompression (writes bytes to memory). Returns decompressed image and the byte count.
     """
 
-    compressed_image = compress(dcn, batch_x)
-    batch_y = decompress(dcn, compressed_image)
+    compressed_image = compress(batch_x, dcn)
+    batch_y = decompress(compressed_image, dcn)
 
     return batch_y, len(compressed_image)
 
 
-def compress_n_stats(dcn, batch_x):
+def compress_n_stats(batch_x, dcn):
 
     batch_y = np.zeros_like(batch_x)
     stats = {
@@ -54,7 +55,7 @@ def compress_n_stats(dcn, batch_x):
     return batch_y, stats
 
 
-def compress(model, batch_x, verbose=False):
+def compress(batch_x, model, verbose=False):
     """
     Serialize the image as a bytes sequence. The feature maps are encoded as separate layers.
 
@@ -155,7 +156,7 @@ def compress(model, batch_x, verbose=False):
     return image_stream.getvalue()
 
 
-def decompress(model, stream, verbose=False):
+def decompress(stream, model=None, verbose=False):
     """
     Decompress an image from the given bytes sequence. See docs of compress for stream details.
     """
@@ -170,7 +171,6 @@ def decompress(model, stream, verbose=False):
     # Read the shape of the latent representation
     latent_x, latent_y, n_latent = np.frombuffer(stream.read(3), np.uint8)
 
-    code_book = model.get_codebook()
     # Read the array with layer sizes
     layer_bytes = np.frombuffer(stream.read(2), np.uint16)
     coded_layer_lengths = stream.read(int(layer_bytes))
@@ -193,6 +193,16 @@ def decompress(model, stream, verbose=False):
     if verbose:
         print('[l3ic decoder]', 'Layer lengths', layer_lengths)
 
+    # Get the 
+    if model is None:
+        model = DCN('{}c'.format(n_latent))
+
+    if model.n_latent != n_latent:
+        print('[l3ic decoder]', 'WARNING', 'the specified model ({}c) does not match the coded stream ({}c) - switching'.format(model.n_latent, n_latent))
+        model = DCN('{}c'.format(n_latent))
+
+    code_book = model.get_codebook()
+    
     # Create the latent space array
     batch_z = np.zeros((1, latent_x, latent_y, n_latent))
 

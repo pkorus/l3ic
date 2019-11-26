@@ -33,7 +33,7 @@ if os.path.splitext(args.input)[-1].lower() == file_ext:
 
     with open(args.input, 'rb') as f:
         coded_stream = f.read()
-        image = codec.decompress(dcn, coded_stream)
+        image = codec.decompress(coded_stream)
 
     if args.output is None:
         args.output = args.input.replace(file_ext, '.png')
@@ -45,7 +45,7 @@ if os.path.splitext(args.input)[-1].lower() in bitmap_formats:
     image = imageio.imread(args.input).astype(np.float32) / 255
     image = np.expand_dims(image, axis=0)
 
-    coded_stream = codec.compress(dcn, image)
+    coded_stream = codec.compress(image, dcn)
 
     if args.output is None:
         args.output = args.input.replace(os.path.splitext(args.input)[-1], file_ext)

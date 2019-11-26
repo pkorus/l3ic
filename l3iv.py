@@ -22,7 +22,7 @@ def quickshow(ax, image, title):
 
 parser = argparse.ArgumentParser(description='Viewer for Lightweight Learned Lossy Image Codec (l3ic)')
 parser.add_argument('input', help='Coded image *.{})'.format(file_ext))
-parser.add_argument('-m', '--model', dest='model', action='store', default='32c',
+parser.add_argument('-m', '--model', dest='model', action='store', default=None,
                     help='DCN model - corresponds to quality: 16c, 32c, 64c')
 
 args = parser.parse_args()
@@ -31,13 +31,13 @@ if args.input is None:
     parser.print_usage()
     sys.exit(1)
 
-dcn = DCN(args.model)
-
 if os.path.splitext(args.input)[-1].lower() == file_ext:
+
+    dcn = DCN(args.model) if args.model is not None else None
 
     with open(args.input, 'rb') as f:
         coded_stream = f.read()
-        image = codec.decompress(dcn, coded_stream)
+        image = codec.decompress(coded_stream, dcn)
 
     fig = plt.figure()
     quickshow(fig.gca(), image, args.input)

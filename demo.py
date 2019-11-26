@@ -36,7 +36,7 @@ image = np.expand_dims(image, axis=0)
 dcn = DCN(args.model)
 
 t1 = datetime.now()
-compressed, image_bytes = codec.simulate_compression(dcn, image)
+compressed, image_bytes = codec.simulate_compression(image, dcn)
 t2 = datetime.now()
 ssim = compare_ssim(image.squeeze(), compressed.squeeze(), multichannel=True, data_range=1.0)
 bpp = 8 * image_bytes / image.shape[1] / image.shape[2]
