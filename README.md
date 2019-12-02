@@ -6,6 +6,10 @@ This repository contains a deployed model only. For model definition, training s
 
 - P. Korus, N. Memon, *Quantifying the Cost of Reliable Photo Authentication via High-Performance Learned Lossy Representations*, ICLR'20, [openreview](https://openreview.net/forum?id=HyxG3p4twS)
 
+<aside class="notice">
+Note that this code is a research prototype and not a production-quality codec. Expect things to break in non-standard and edge cases. 
+</aside>
+
 ## Architecture at a Glance
 
 - We used the auto-encoder architecture from [Liu et al. @CVPRW'18](https://arxiv.org/abs/1806.01496)
