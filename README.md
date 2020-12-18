@@ -11,7 +11,7 @@ This repository contains a deployed model only. For model definition, training s
 
 ## Architecture at a Glance
 
-- We used the auto-encoder architecture from [Liu et al. @CVPRW'18](https://arxiv.org/abs/1806.01496)
+- We used the auto-encoder architecture from [Theis et al. @ICLR 2017](https://arxiv.org/abs/1703.00395)
 - We implemented our own quantizer and entropy estimator
 - We don't use any normalizations (e.g., GDNs) & regularize only based on the entropy of the latent representation
 - The deployed model uses a code-book with 32 values (integers from -15 to 16)
